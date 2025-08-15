@@ -1,0 +1,65 @@
+# ============================
+#  Ignorar archivos (Proyecto)
+# ============================
+
+# --- Entornos virtuales ---
+**/.venv/
+**/venv/
+**/env/
+**/rpi-lora-env/
+
+# --- Python / caches ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.pytest_cache/
+.mypy_cache/
+.coverage
+*.cover
+htmlcov/
+
+# --- Construcción / distribución ---
+build/
+dist/
+.eggs/
+*.egg-info/
+*.egg
+
+# --- Logs y datos de ejecución ---
+*.log
+# RX CSVs generados por runtime
+lora-rx/*.csv
+lora-rx/rx_log.csv
+
+# --- Archivos de entorno ---
+.env
+**/.env
+.env.local
+.env.*.local
+
+# --- IDE / Editores ---
+.vscode/
+.idea/
+*.code-workspace
+*.sublime-project
+*.sublime-workspace
+
+# --- SO / temporales ---
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+~$*
+
+# --- Herramientas auxiliares ---
+.qodo/
+**/.qodo/
+.lgd-*/
+
+# --- Otros temporales ---
+*.tmp
+*.temp
+*.bak
+*.old
