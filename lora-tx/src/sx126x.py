@@ -1,3 +1,10 @@
+"""SX126x UART driver for Waveshare E22/SX126x HAT on Raspberry Pi.
+
+Provides minimal configuration via GPIO M0/M1 and UART and methods to send/receive
+data frames. Exposes RSSI reads and noise RSSI query.
+
+Note: This is a simplified driver adapted from vendor examples.
+"""
 # This file is used for LoRa and Raspberry pi4B related issues 
 
 import RPi.GPIO as GPIO
@@ -5,6 +12,7 @@ import serial
 import time
 
 class sx126x:
+    """Minimal SX126x UART driver for Raspberry Pi GPIO/UART HAT."""
 
     M0 = 22
     M1 = 27
@@ -80,6 +88,17 @@ class sx126x:
     def __init__(self,serial_num,freq,addr,power,rssi,air_speed=2400,\
                  net_id=0,buffer_size = 240,crypt=0,\
                  relay=False,lbt=False,wor=False):
+        """Initialize the radio and UART.
+
+        Args:
+            serial_num: UART device path (e.g., /dev/ttyUSB0 or /dev/serial0).
+            freq: Operating frequency MHz (e.g., 915 or 868).
+            addr: Node address (0-65535).
+            power: Transmit power dBm (10, 13, 17, 22).
+            rssi: Whether to append packet RSSI to received messages.
+            air_speed: Air data rate in bps.
+            net_id, buffer_size, crypt, relay, lbt, wor: Module features.
+        """
         self.rssi = rssi
         self.addr = addr
         self.freq = freq
@@ -101,6 +120,10 @@ class sx126x:
     def set(self,freq,addr,power,rssi,air_speed=2400,\
             net_id=0,buffer_size = 240,crypt=0,\
             relay=False,lbt=False,wor=False):
+        """Apply configuration to the module over UART while M1 is high.
+
+        Retries up to 5 times waiting for 0xC1 acknowledgment.
+        """
         self.send_to = addr
         self.addr = addr
         # We should pull up the M1 pin when sets the module
@@ -199,6 +222,7 @@ class sx126x:
         time.sleep(0.1)
 
     def get_settings(self):
+        """Query module settings (requires M1 high). Prints basic parameters."""
         # the pin M1 of lora HAT must be high when enter setting mode and get parameters
         GPIO.output(M1,GPIO.HIGH)
         time.sleep(0.1)
@@ -227,6 +251,7 @@ class sx126x:
 # "node address,frequence,payload"
 # "20,868,Hello World"
     def send(self,data):
+        """Send raw bytes over UART. Ensures normal mode (M0=LOW, M1=LOW)."""
         GPIO.output(self.M1,GPIO.LOW)
         GPIO.output(self.M0,GPIO.LOW)
         time.sleep(0.1)
@@ -238,6 +263,7 @@ class sx126x:
 
 
     def receive(self):
+        """Blocking read of available UART bytes; prints payload and optional RSSI."""
         if self.ser.inWaiting() > 0:
             time.sleep(0.5)
             r_buff = self.ser.read(self.ser.inWaiting())
@@ -255,6 +281,7 @@ class sx126x:
                 #print('\x1b[2A',end='\r')
 
     def get_channel_rssi(self):
+        """Query current noise RSSI (not the last packet RSSI)."""
         GPIO.output(self.M1,GPIO.LOW)
         GPIO.output(self.M0,GPIO.LOW)
         time.sleep(0.1)

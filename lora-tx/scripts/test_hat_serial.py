@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
+"""Serial port/HAT test utility for SX126x LoRa HAT.
+
+Allows probing module settings and sending raw test data. Can optionally
+control M0/M1 pins via GPIO when the HAT is on the header, or rely on
+jumpers when using a USB adapter.
+"""
 import argparse, time, sys, os, glob
 
-# Asegura que el adaptador GPIO local (src/RPi/GPIO.py) esté disponible
+# Ensure local GPIO shim (src/RPi/GPIO.py) is available
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 try:
     import RPi.GPIO as GPIO
@@ -11,44 +17,47 @@ except Exception:
 try:
     import serial
 except Exception as e:
-    print("Falta pyserial: pip install pyserial", file=sys.stderr)
+    print("Missing pyserial: pip install pyserial", file=sys.stderr)
     raise
 
-# Pines BCM del HAT según el driver
+# HAT BCM pins according to the driver
 M0 = 22
 M1 = 27
 
 def detect_serial_default() -> str:
-    # Preferir USB si está conectado
+    """Return a default serial device. Prefer USB if available."""
+    # Prefer USB if connected
     usb = sorted(glob.glob('/dev/ttyUSB*'))
     if usb:
         return usb[0]
-    # Si no hay USB, usar la UART de la Pi
+    # If no USB, use Pi's UART
     return '/dev/serial0'
 
 def set_mode(config_mode: bool, use_gpio: bool):
+    """Drive M0/M1 for config or normal mode if using GPIO control."""
     if not use_gpio:
         return
     if GPIO is None:
-        print("GPIO no disponible en este entorno (usa --no-gpio si estás en USB/CP2102 o fija M0/M1 por jumpers)")
+        print("GPIO not available in this environment (use --no-gpio with USB/CP2102 or set M0/M1 with jumpers)")
         return
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
     GPIO.setup(M0, GPIO.OUT)
     GPIO.setup(M1, GPIO.OUT)
     if config_mode:
-        # M0=LOW, M1=HIGH => modo configuración
+        # M0=LOW, M1=HIGH => config mode
         GPIO.output(M0, GPIO.LOW)
         GPIO.output(M1, GPIO.HIGH)
     else:
-        # M0=LOW, M1=LOW => modo transmisión
+        # M0=LOW, M1=LOW => normal mode
         GPIO.output(M0, GPIO.LOW)
         GPIO.output(M1, GPIO.LOW)
     time.sleep(0.5)
 
 
 def probe_settings(ser: serial.Serial, timeout=1.5) -> bytes:
-    # Comando para leer parámetros: 0xC1 0x00 0x09
+    """Send 0xC1 0x00 0x09 to read parameters and return raw response."""
+    # Read-parameters command: 0xC1 0x00 0x09
     ser.reset_input_buffer()
     ser.write(bytes([0xC1, 0x00, 0x09]))
     ser.flush()
@@ -64,52 +73,53 @@ def probe_settings(ser: serial.Serial, timeout=1.5) -> bytes:
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Prueba puerto serial del HAT SX126x")
-    ap.add_argument('--serial', default=None, help='Dispositivo serie (/dev/serial0 o /dev/ttyUSB0). Si se omite, se autodetecta.')
+    """Parse args and run serial probe/send operations for the HAT."""
+    ap = argparse.ArgumentParser(description="SX126x HAT serial port test")
+    ap.add_argument('--serial', default=None, help='Serial device (/dev/serial0 or /dev/ttyUSB0). Auto-detect if omitted.')
     ap.add_argument('--baud', type=int, default=9600)
-    ap.add_argument('--probe', action='store_true', help='Intentar leer parámetros del módulo (modo configuración)')
-    ap.add_argument('--send', default='', help="Enviar texto crudo para ver actividad en UART (e.g. 'HELLO\\r\\n')")
-    ap.add_argument('--gpio', dest='use_gpio', action='store_true', help='Controlar M0/M1 por GPIO (requiere HAT sobre el header y M0/M1 sin jumpers)')
-    ap.add_argument('--no-gpio', dest='use_gpio', action='store_false', help='No controlar M0/M1 por GPIO (usar cuando fijas el modo con jumpers o vas por USB)')
+    ap.add_argument('--probe', action='store_true', help='Try reading module parameters (config mode)')
+    ap.add_argument('--send', default='', help="Send raw text to observe UART activity (e.g. 'HELLO\\r\\n')")
+    ap.add_argument('--gpio', dest='use_gpio', action='store_true', help='Control M0/M1 via GPIO (HAT on header, no jumpers)')
+    ap.add_argument('--no-gpio', dest='use_gpio', action='store_false', help='Do not control M0/M1 via GPIO (use jumpers or USB path)')
     ap.set_defaults(use_gpio=None)
-    # Compatibilidad con la versión previa
-    ap.add_argument('--skip-gpio', action='store_true', help='Alias de --no-gpio')
-    ap.add_argument('--burst', type=int, default=1, help='Repetir el envío N veces (para observar LEDs)')
+    # Backward compatibility
+    ap.add_argument('--skip-gpio', action='store_true', help='Alias for --no-gpio')
+    ap.add_argument('--burst', type=int, default=1, help='Repeat send N times (to observe LEDs)')
     args = ap.parse_args()
 
-    # Autodetectar puerto si no se especifica
+    # Auto-detect port if not specified
     serial_dev = args.serial or detect_serial_default()
 
-    # Resolver uso de GPIO automáticamente si no se especificó
+    # Resolve GPIO usage automatically if not specified
     if args.use_gpio is None:
-        # Si vamos por USB, por defecto NO usar GPIO; si vamos por /dev/serial0, usar GPIO si está disponible
+        # If using USB, default to NO GPIO; if /dev/serial0, use GPIO if available
         args.use_gpio = (not serial_dev.startswith('/dev/ttyUSB')) and (GPIO is not None)
-    # Respetar alias --skip-gpio
+    # Honor alias --skip-gpio
     if args.skip_gpio:
         args.use_gpio = False
 
-    # Determinar modo deseado para M0/M1
+    # Determine desired mode for M0/M1
     config_mode = bool(args.probe)
 
-    # Mensajes guía sobre jumpers según contexto
+    # Guidance messages about jumpers depending on context
     if not args.use_gpio:
         if serial_dev.startswith('/dev/ttyUSB'):
             # USB/CP2102
             if config_mode:
-                print("Nota: con USB y sin GPIO, fija jumpers: A cerrado; M0 cerrado, M1 abierto (modo configuración)")
+                print("Note: with USB and no GPIO, set jumpers: A closed; M0 closed, M1 open (config mode)")
             else:
-                print("Nota: con USB y sin GPIO, fija jumpers: A cerrado; M0 cerrado, M1 cerrado (modo transmisión)")
+                print("Note: with USB and no GPIO, set jumpers: A closed; M0 closed, M1 closed (normal mode)")
         else:
-            print("Advertencia: sin GPIO y usando /dev/serial0, asegúrate de fijar M0/M1 por jumpers (LOW/LOW para transmitir, LOW/HIGH para configurar)")
+            print("Warning: without GPIO using /dev/serial0, ensure M0/M1 are set by jumpers (LOW/LOW for normal, LOW/HIGH for config)")
 
-    # Si vamos a hacer probe, entrar en modo config; si sólo enviar texto, modo transmisión
+    # If probing, enter config mode; if only sending, normal mode
     set_mode(config_mode=config_mode, use_gpio=args.use_gpio)
 
-    print(f"Abriendo {serial_dev} @ {args.baud} bps…")
+    print(f"Opening {serial_dev} @ {args.baud} bps…")
     try:
         ser = serial.Serial(serial_dev, args.baud, timeout=0.2)
     except Exception as e:
-        print(f"Error abriendo {serial_dev}: {e}")
+        print(f"Error opening {serial_dev}: {e}")
         sys.exit(1)
 
     time.sleep(0.1)
@@ -117,27 +127,27 @@ def main():
     did = False
     if args.probe:
         did = True
-        print("Probing parámetros (0xC1 0x00 0x09)…")
+        print("Probing parameters (0xC1 0x00 0x09)…")
         resp = probe_settings(ser)
         if resp.startswith(b'\xC1') and len(resp) >= 3 and resp[2] == 0x09:
-            print(f"OK: respuesta {resp.hex()}")
+            print(f"OK: response {resp.hex()}")
         else:
-            print(f"Sin respuesta válida (recibido {resp.hex() if resp else 'nada'})")
-        # Volver a modo transmisión si controlamos GPIO
+            print(f"No valid response (received {resp.hex() if resp else 'nothing'})")
+        # Return to normal mode if controlling GPIO
         set_mode(config_mode=False, use_gpio=args.use_gpio)
 
     if args.send:
         did = True
         data = args.send.encode()
-        print(f"Enviando {len(data)} bytes x {args.burst}…")
+        print(f"Sending {len(data)} bytes x {args.burst}…")
         for i in range(max(1, args.burst)):
             ser.write(data)
             ser.flush()
             time.sleep(0.05)
-        print("Enviado. Observa LEDs/analizador/receptor.")
+        print("Sent. Observe LEDs/analyzer/receiver.")
 
     if not did:
-        print("Nada que hacer: use --probe o --send 'TEXTO'")
+        print("Nothing to do: use --probe or --send 'TEXT'")
 
     ser.close()
 

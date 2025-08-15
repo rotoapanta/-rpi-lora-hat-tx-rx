@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+"""Sensor telemetry transmitter for SX126x LoRa HAT.
+
+Sends simulated rain and seismic data frames at a configurable period.
+Environment variables (via .env) and CLI flags control UART port,
+frequency, addresses, power, air speed, station id, and bucket size.
+"""
+
 import os, argparse, json, random, time, math
 from datetime import datetime, timezone
 from dotenv import load_dotenv
@@ -7,14 +14,26 @@ from sx126x import sx126x
 load_dotenv()
 
 def build_frame(dev, dest_addr: int, payload: bytes) -> bytes:
+    """Construct a LoRa frame prefixing payload with destination and source
+    addresses and the device channel offset bytes expected by the receiver.
+    """
     dest_hi = (dest_addr >> 8) & 0xFF; dest_lo = dest_addr & 0xFF
     src_hi  = (dev.addr >> 8) & 0xFF;  src_lo  = dev.addr & 0xFF
     return bytes([dest_hi, dest_lo, dev.offset_freq, src_hi, src_lo, dev.offset_freq]) + payload
 
 def now_iso():
+    """Return current local time formatted as 'YYYY-MM-DD HH:MM:SS'."""
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 def simulate_rain(period_s: float, bucket_mm: float, total_mm: float, tips: int):
+    """Simulate rainfall over the given sample period.
+
+    Returns a tuple: (rain_dict, total_mm, tips), where rain_dict contains:
+      - intensity_mm_h: instantaneous intensity in mm/h
+      - bucket_mm: tipping bucket size in mm
+      - bucket_tips_total: cumulative bucket counts
+      - rain_mm_total: cumulative rainfall in mm
+    """
     # Simula intensidad en mm/h (0 la mayor parte del tiempo, con eventos aleatorios)
     if random.random() < 0.85:
         intensity = 0.0
@@ -34,6 +53,10 @@ def simulate_rain(period_s: float, bucket_mm: float, total_mm: float, tips: int)
     }, total_mm, tips
 
 def simulate_seismic():
+    """Simulate 3-axis acceleration (g) with ambient noise and compute metrics.
+
+    Returns a dict with ax_g, ay_g, az_g, pga_g (peak), and rms_g.
+    """
     # Simula aceleración en g con ruido ambiental
     ax = random.gauss(0.0, 0.005)
     ay = random.gauss(0.0, 0.005)
@@ -49,7 +72,8 @@ def simulate_seismic():
     }
 
 def main():
-    ap = argparse.ArgumentParser(description='TX de datos de lluvia y sísmicos')
+    """Entry point: parse CLI, configure radio, and transmit sensor frames."""
+    ap = argparse.ArgumentParser(description='Transmit simulated rain and seismic data')
     ap.add_argument('--serial', default=os.getenv('SERIAL','/dev/serial0'))
     ap.add_argument('--freq', type=int, default=int(os.getenv('FREQ','915')))
     ap.add_argument('--addr', type=int, default=int(os.getenv('ADDR','101')))

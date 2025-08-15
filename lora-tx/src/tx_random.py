@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+"""Random payload transmitter for SX126x LoRa HAT.
+
+Sends periodically either JSON or text frames to a destination address.
+Environment variables (via .env) and CLI flags control UART port,
+frequency, addresses, power, air speed, mode, and period.
+"""
 import os, argparse, json, random, time
 from datetime import datetime, timezone
 from dotenv import load_dotenv
@@ -7,15 +13,19 @@ from sx126x import sx126x
 load_dotenv()
 
 def build_frame(dev, dest_addr: int, payload: bytes) -> bytes:
+    """Construct a LoRa frame by prefixing destination/src address and
+    channel offset bytes to the payload."""
     dest_hi = (dest_addr >> 8) & 0xFF; dest_lo = dest_addr & 0xFF
     src_hi  = (dev.addr >> 8) & 0xFF;  src_lo  = dev.addr & 0xFF
     return bytes([dest_hi, dest_lo, dev.offset_freq, src_hi, src_lo, dev.offset_freq]) + payload
 
 def now_iso():
+    """Return current UTC timestamp in ISO 8601 (seconds resolution)."""
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 def main():
-    ap = argparse.ArgumentParser()
+    """Entry point: parse CLI, configure radio, and transmit random frames."""
+    ap = argparse.ArgumentParser(description='Transmit random payloads (JSON or text)')
     ap.add_argument('--serial', default=os.getenv('SERIAL','/dev/serial0'))
     ap.add_argument('--freq', type=int, default=int(os.getenv('FREQ','915')))
     ap.add_argument('--addr', type=int, default=int(os.getenv('ADDR','101')))
