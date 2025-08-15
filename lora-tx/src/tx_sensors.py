@@ -12,7 +12,7 @@ def build_frame(dev, dest_addr: int, payload: bytes) -> bytes:
     return bytes([dest_hi, dest_lo, dev.offset_freq, src_hi, src_lo, dev.offset_freq]) + payload
 
 def now_iso():
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 def simulate_rain(period_s: float, bucket_mm: float, total_mm: float, tips: int):
     # Simula intensidad en mm/h (0 la mayor parte del tiempo, con eventos aleatorios)

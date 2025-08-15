@@ -20,7 +20,7 @@ while [[ $# -gt 0 ]]; do
     --type=*)
       TX_TYPE_CLI="${1#*=}"; shift 1;;
     *)
-      echo "⚠️  Argumento no reconocido para run_tx.sh: $1"; shift 1;;
+      echo "Argumento no reconocido para run_tx.sh: $1"; shift 1;;
   esac
 done
 
@@ -28,7 +28,7 @@ done
 TX_TYPE="${TX_TYPE_CLI:-${TX_TYPE:-random}}"
 TX_TYPE_LOWER="$(echo "$TX_TYPE" | tr '[:upper:]' '[:lower:]')"
 if [[ "$TX_TYPE_LOWER" != "random" && "$TX_TYPE_LOWER" != "sensors" ]]; then
-  echo "❌ TX_TYPE inválido: '$TX_TYPE'. Usa 'random' o 'sensors'."
+  echo "TX_TYPE inválido: '$TX_TYPE'. Usa 'random' o 'sensors'."
   exit 1
 fi
 
@@ -38,7 +38,7 @@ if [[ "$VIRTUAL_ENV" != "$(pwd)/rpi-lora-env" ]]; then
   # shellcheck disable=SC1091
   source rpi-lora-env/bin/activate
 else
-  echo "ℹ️  Entorno virtual ya activo: $VIRTUAL_ENV"
+  echo "ℹ🔹 Entorno virtual ya activo: $VIRTUAL_ENV"
 fi
 
 # Defaults por si no existen en .env

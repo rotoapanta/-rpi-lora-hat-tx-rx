@@ -16,6 +16,6 @@ pip install --upgrade pip
 echo "🔹 Instalando dependencias desde requirements.txt..."
 pip install -r requirements.txt
 
-echo "✅ Entorno virtual 'rpi-lora-env' listo para usar."
-echo "💡 Para activarlo en el futuro: source rpi-lora-env/bin/activate"
-echo "🔄 Para desactivarlo: deactivate"
+echo "🔹 Entorno virtual 'rpi-lora-env' listo para usar."
+echo "🔹 Para activarlo en el futuro: source rpi-lora-env/bin/activate"
+echo "🔹 Para desactivarlo: deactivate"

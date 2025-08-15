@@ -18,7 +18,6 @@ except Exception as e:
 M0 = 22
 M1 = 27
 
-
 def detect_serial_default() -> str:
     # Preferir USB si está conectado
     usb = sorted(glob.glob('/dev/ttyUSB*'))
@@ -26,7 +25,6 @@ def detect_serial_default() -> str:
         return usb[0]
     # Si no hay USB, usar la UART de la Pi
     return '/dev/serial0'
-
 
 def set_mode(config_mode: bool, use_gpio: bool):
     if not use_gpio:
