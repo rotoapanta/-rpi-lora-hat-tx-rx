@@ -24,6 +24,13 @@ Each component maintains its own virtual environment and .env configuration.
 - LoRa HAT/board based on SX126x
 - Proper antenna and regulatory permission to operate at your selected frequency
 
+## Clone the repository
+
+```bash
+$ git clone git@github.com:rotoapanta/rpi-lora-hat-tx-rx.git
+$ cd rpi-lora-hat-tx-rx
+```
+
 ## Project structure
 
 ```
