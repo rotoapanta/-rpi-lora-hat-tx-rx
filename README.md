@@ -13,81 +13,81 @@
 
 # <p align="center">rpi-lora-hat-tx-rx</p>
 
-Proyecto con dos componentes separados para trabajar con HATs LoRa SX126x en Raspberry Pi:
-- lora-tx: transmisor (mensajes aleatorios o telemetría simulada de sensores)
-- lora-rx: receptor (con registro opcional a CSV)
+Project with two separate components to work with LoRa SX126x HATs on Raspberry Pi:
+- lora-tx: transmitter (random messages or simulated sensor telemetry)
+- lora-rx: receiver (optional CSV logging)
 
-Cada componente mantiene su propio entorno virtual y su configuración .env.
+Each component maintains its own virtual environment and .env configuration.
 
-## Requisitos
-- Raspberry Pi con Python 3.11+
-- HAT/placa LoRa basada en SX126x
-- Antena adecuada y permisos en tu región para operar en la frecuencia elegida
+## Requirements
+- Raspberry Pi with Python 3.11+
+- LoRa HAT/board based on SX126x
+- Proper antenna and regulatory permission to operate at your selected frequency
 
-## Preparación de entornos
-Se recomiendan entornos virtuales independientes por cada carpeta (Tx y Rx).
+## Environment setup
+Separate virtual environments are recommended for TX and RX.
 
 ### LoRa Rx
-Dentro de lora-rx/ hay un script de conveniencia:
+Inside lora-rx/ there is a convenience script:
 
 ```bash
-$ ./create_env.sh
+$ ./scripts/create_env.sh
 ```
 
-Este script crea y prepara el entorno virtual rpi-lora-env e instala dependencias.
+This script creates the rpi-lora-env virtual environment and installs dependencies.
 
 ### LoRa Tx
-Dentro de lora-rx/ hay un script de conveniencia:
+Inside lora-tx/ there is a convenience script:
 
 ```bash
-$ ./create_env.sh
+$ ./scripts/create_env.sh
 ```
 
-Este script crea y prepara el entorno virtual rpi-lora-env e instala dependencias.
+This script creates the rpi-lora-env virtual environment and installs dependencies.
 
-## Configuración (.env)
-Ambos módulos leen variables desde un archivo .env en su raíz correspondiente.
+## Configuration (.env)
+Both modules read variables from a .env file at their respective roots.
 
 ### LoRa Rx (.env)
-Hay un archivo de ejemplo listo para copiar:
+An example file is available:
 
 ```bash
 $ cp lora-rx/.env.example lora-rx/.env
 ```
 
-Variables principales en lora-rx/.env:
-- SERIAL: /dev/ttyUSB0 (USB, jumper A) o /dev/serial0 (GPIO, jumper B)
-- FREQ: frecuencia en MHz (por ejemplo, 915 o 868, según tu región/módulo)
-- ADDR: dirección propia del RX (p. ej., 102 si el TX usa 101)
-- POWER: potencia del radio (parámetro del driver)
-- AIRSPEED: velocidad de aire en bps (debe coincidir con TX)
-- RX_CSV: ruta del CSV para registrar tramas recibidas (vacío para desactivar)
-- RX_DEBUG: 0/1 para depuración de datos crudos
+Key variables in lora-rx/.env:
+- SERIAL: /dev/ttyUSB0 (USB, jumper A) or /dev/serial0 (GPIO, jumper B)
+- FREQ: frequency in MHz (e.g., 915 or 868, depending on region/module)
+- ADDR: RX address (e.g., 102 if TX uses 101)
+- POWER: radio power (driver parameter)
+- AIRSPEED: air speed in bps (must match TX)
+- RX_CSV: path to CSV to log received frames (empty to disable)
+- RX_DEBUG: 0/1 to print raw serial data
 
 ### LoRa Tx (.env)
-También hay un ejemplo en lora-tx/.env.example (si no existe .env, cópialo):
+An example file is available under lora-tx/.env.example (copy it if missing):
 
 ```bash
 $ cp lora-tx/.env.example lora-tx/.env
 ```
 
-Variables principales en lora-tx/.env:
-- SERIAL: /dev/ttyUSB0 (USB, jumper A) o /dev/serial0 (GPIO, jumper B)
-- FREQ: frecuencia en MHz (debe coincidir con RX)
-- ADDR: dirección propia del TX (p. ej., 101)
-- DEST: 65535 (broadcast) o la ADDR del RX destino (p. ej., 102)
-- POWER: potencia de transmisión en dBm
-- AIRSPEED: velocidad de aire en bps (debe coincidir con RX)
-- PERIOD: periodo de envío en segundos
-- TX_TYPE: random | sensors (selecciona script a ejecutar)
-- MODE: json | text (solo para TX_TYPE=random)
-- STATION, BUCKET_MM: parámetros del modo sensors
+Key variables in lora-tx/.env:
+- SERIAL: /dev/ttyUSB0 (USB, jumper A) or /dev/serial0 (GPIO, jumper B)
+- FREQ: frequency in MHz (must match RX)
+- ADDR: TX address (e.g., 101)
+- DEST: 65535 (broadcast) or the target RX ADDR (e.g., 102)
+- POWER: transmit power in dBm
+- AIRSPEED: air speed in bps (must match RX)
+- PERIOD: send period in seconds
+- TX_TYPE: random | sensors (selects which script to run)
+- MODE: json | text (only for TX_TYPE=random)
+- STATION, BUCKET_MM: parameters for sensors mode
 
-Notas de compatibilidad:
-- FREQ y AIRSPEED deben coincidir EXACTAMENTE entre TX y RX.
-- Si usas DEST=65535 (broadcast), cualquier RX que coincida en FREQ/AIRSPEED recibirá.
+Compatibility notes:
+- FREQ and AIRSPEED must match EXACTLY between TX and RX.
+- Using DEST=65535 (broadcast) allows any RX with matching FREQ/AIRSPEED to receive.
 
-## Ejecución
+## Run
 
 ### LoRa Rx
 
@@ -95,7 +95,7 @@ Notas de compatibilidad:
 $ ./lora-rx/scripts/run_rx.sh
 ```
 
-El script activa el venv, carga .env, muestra la configuración efectiva y lanza src/rx_basic.py con flags:
+The script activates the venv, loads .env, prints the effective configuration and starts src/rx_basic.py with flags:
 --serial, --freq, --addr, --power, --airspeed, --csv, --debug.
 
 ### LoRa Tx
@@ -104,62 +104,74 @@ El script activa el venv, carga .env, muestra la configuración efectiva y lanza
 $ ./lora-tx/scripts/run_tx.sh
 ```
 
-El script activa el venv, carga .env y elige el transmisor según TX_TYPE (random o sensors), lanzando:
-- src/tx_random.py con --serial --freq --addr --dest --power --airspeed --mode --period
-- src/tx_sensors.py con --serial --freq --addr --dest --power --airspeed --period --station --bucket-mm
+The script activates the venv, loads .env and selects the transmitter based on TX_TYPE (random or sensors), launching:
+- src/tx_random.py with --serial --freq --addr --dest --power --airspeed --mode --period
+- src/tx_sensors.py with --serial --freq --addr --dest --power --airspeed --period --station --bucket-mm
 
-Puedes sobreescribir variables al vuelo, por ejemplo:
+You can override variables inline, for example:
 
 ```bash
 TX_TYPE=sensors bash lora-tx/scripts/run_tx.sh
 RX_DEBUG=1 bash lora-rx/scripts/run_rx.sh
 ```
 
-## Estructura del proyecto
+## Project structure
 
 ```
 rpi-lora-hat-tx-rx/
-├── .git/                     # repo raíz
-├── .gitignore                # ignore global del proyecto
+├── .git/                     # root repo
+├── .gitignore                # project-wide ignores
 ├── LICENSE
 ├── README.md
-├── lora-tx/                  # transmisor
-│   ├── .env                  # configuración TX
+├── lora-tx/                  # transmitter
+│   ├── .env                  # TX configuration
 │   ├── .env.example
 │   ├── requirements.txt
-│   ├── rpi-lora-env/         # entorno virtual (ignorado por git)
+│   ├── rpi-lora-env/         # virtualenv (ignored by git)
 │   ├── scripts/
 │   │   ├── create_env.sh
 │   │   ├── run_tx.sh
 │   │   └── test_hat_serial.py
 │   └── src/
 │       ├── RPi/
-│       ├── __pycache__/
 │       ├── sx126x.py
 │       ├── tx_random.py
 │       └── tx_sensors.py
-└── lora-rx/                  # receptor
-    ├── .env                  # configuración RX
+└── lora-rx/                  # receiver
+    ├── .env                  # RX configuration
     ├── .env.example
     ├── requirements.txt
-    ├── rx_log.csv            # CSV de ejemplo/generado por RX
+    ├── rx_log.csv            # sample/generated CSV
     ├── scripts/
     │   ├── create_env.sh
     │   ├── run_rx.sh
     │   └── test_hat_serial.py
     └── src/
         ├── RPi/
-        ├── __pycache__/
         ├── rx_basic.py
         └── sx126x.py
 ```
 
-Notas:
-- Los directorios __pycache__/ y rpi-lora-env/ están ignorados por .gitignore.
-- lora-tx originalmente contenía un .git propio; decide si integrarlo en el repo raíz o mantenerlo aparte.
+## Regulatory compliance
+Operate within the permitted ISM bands and power limits in your region (e.g., 915 MHz or 868 MHz). Use an appropriate antenna and follow RF safety guidelines.
 
-## Cumplimiento normativo
-Opera dentro de las bandas ISM y límites de potencia permitidos en tu región (p. ej., 915 MHz o 868 MHz). Usa una antena adecuada y sigue las guías de seguridad RF.
+---
+## License
 
-## Licencia
-Ver LICENSE.
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+
+---
+## Authors
+
+- [@rotoapanta](https://github.com/rotoapanta)
+
+---
+## More Info
+
+* [Official documentation for DiGOS, Portafolio Seismic Measurement Equipment](https://digos.eu/seismology/)
+
+---
+## Links
+
+[![linkedin](https://img.shields.io/badge/linkedin-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/roberto-carlos-toapanta-g/)
+[![twitter](https://img.shields.io/badge/twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/rotoapanta)
