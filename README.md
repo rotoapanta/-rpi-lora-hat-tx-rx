@@ -24,6 +24,43 @@ Each component maintains its own virtual environment and .env configuration.
 - LoRa HAT/board based on SX126x
 - Proper antenna and regulatory permission to operate at your selected frequency
 
+## Project structure
+
+```
+rpi-lora-hat-tx-rx/
+├── .git/                     # root repo
+├── .gitignore                # project-wide ignores
+├── LICENSE
+├── README.md
+├── lora-tx/                  # transmitter
+│   ├── .env                  # TX configuration
+│   ├── .env.example
+│   ├── requirements.txt
+│   ├── rpi-lora-env/         # virtualenv (ignored by git)
+│   ├── scripts/
+│   │   ├── create_env.sh
+│   │   ├── run_tx.sh
+│   │   └── test_hat_serial.py
+│   └── src/
+│       ├── RPi/
+│       ├── sx126x.py
+│       ├── tx_random.py
+│       └── tx_sensors.py
+└── lora-rx/                  # receiver
+    ├── .env                  # RX configuration
+    ├── .env.example
+    ├── requirements.txt
+    ├── rx_log.csv            # sample/generated CSV
+    ├── scripts/
+    │   ├── create_env.sh
+    │   ├── run_rx.sh
+    │   └── test_hat_serial.py
+    └── src/
+        ├── RPi/
+        ├── rx_basic.py
+        └── sx126x.py
+```
+
 ## Environment setup
 Separate virtual environments are recommended for TX and RX.
 
@@ -113,43 +150,6 @@ You can override variables inline, for example:
 ```bash
 TX_TYPE=sensors bash lora-tx/scripts/run_tx.sh
 RX_DEBUG=1 bash lora-rx/scripts/run_rx.sh
-```
-
-## Project structure
-
-```
-rpi-lora-hat-tx-rx/
-├── .git/                     # root repo
-├── .gitignore                # project-wide ignores
-├── LICENSE
-├── README.md
-├── lora-tx/                  # transmitter
-│   ├── .env                  # TX configuration
-│   ├── .env.example
-│   ├── requirements.txt
-│   ├── rpi-lora-env/         # virtualenv (ignored by git)
-│   ├── scripts/
-│   │   ├── create_env.sh
-│   │   ├── run_tx.sh
-│   │   └── test_hat_serial.py
-│   └── src/
-│       ├── RPi/
-│       ├── sx126x.py
-│       ├── tx_random.py
-│       └── tx_sensors.py
-└── lora-rx/                  # receiver
-    ├── .env                  # RX configuration
-    ├── .env.example
-    ├── requirements.txt
-    ├── rx_log.csv            # sample/generated CSV
-    ├── scripts/
-    │   ├── create_env.sh
-    │   ├── run_rx.sh
-    │   └── test_hat_serial.py
-    └── src/
-        ├── RPi/
-        ├── rx_basic.py
-        └── sx126x.py
 ```
 
 ## Regulatory compliance
