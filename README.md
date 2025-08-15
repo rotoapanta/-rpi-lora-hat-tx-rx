@@ -20,7 +20,7 @@ Project with two separate components to work with LoRa SX126x HATs on Raspberry 
 Each component maintains its own virtual environment and .env configuration.
 
 ## Requirements
-- Raspberry Pi with Python 3.11+
+- Raspberry Pi 5 with Python 3.11+
 - LoRa HAT/board based on SX126x
 - Proper antenna and regulatory permission to operate at your selected frequency
 
@@ -165,7 +165,8 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 ## More Info
 
-* [Official documentation for DiGOS, Portafolio Seismic Measurement Equipment](https://digos.eu/seismology/)
+- [Waveshare SX1262 868M LoRa HAT (product page)](https://www.waveshare.com/sx1262-868m-lora-hat.htm?sku=16807)
+- [Waveshare SX1262 868M LoRa HAT (wiki)](https://www.waveshare.com/wiki/SX1262_868M_LoRa_HAT)
 
 ## Links
 
