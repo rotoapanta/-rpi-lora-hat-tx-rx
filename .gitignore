@@ -54,8 +54,6 @@ Thumbs.db
 ~$*
 
 # --- Herramientas auxiliares ---
-.qodo/
-**/.qodo/
 .lgd-*/
 
 # --- Otros temporales ---
