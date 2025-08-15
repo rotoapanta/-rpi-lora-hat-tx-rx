@@ -17,7 +17,7 @@ if [[ "$VIRTUAL_ENV" != "$(pwd)/rpi-lora-env" ]]; then
   # shellcheck disable=SC1091
   source rpi-lora-env/bin/activate
 else
-  echo "ℹ️  Entorno virtual ya activo: $VIRTUAL_ENV"
+  echo "ℹ🔹 Entorno virtual ya activo: $VIRTUAL_ENV"
 fi
 
 # Defaults por si no existen en .env
@@ -29,7 +29,7 @@ AIRSPEED="${AIRSPEED:-2400}"
 RX_CSV="${RX_CSV:-}"
 RX_DEBUG="${RX_DEBUG:-0}"
 
-echo "📡 Ejecutando RECEPTOR:"
+echo "Ejecutando RECEPTOR:"
 echo "    SERIAL=$SERIAL  FREQ=${FREQ}MHz  ADDR=$ADDR"
 echo "    POWER=${POWER}dBm  AIRSPEED=$AIRSPEED  CSV=$RX_CSV  DEBUG=$RX_DEBUG"
 

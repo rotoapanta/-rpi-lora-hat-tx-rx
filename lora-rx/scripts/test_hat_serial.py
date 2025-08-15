@@ -18,7 +18,6 @@ except Exception as e:
 M0 = 22
 M1 = 27
 
-
 def detect_serial_default() -> str:
     # Preferir USB si está conectado
     usb = sorted(glob.glob('/dev/ttyUSB*'))
