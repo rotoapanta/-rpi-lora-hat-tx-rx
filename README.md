@@ -115,37 +115,6 @@ RX_DEBUG=1 bash lora-rx/scripts/run_rx.sh
   - requirements.txt, .env(.example)
 - .gitignore (global del proyecto)
 
-## Control de versiones (Git)
-El repositorio raíz ya puede inicializarse con:
-
-```bash
-git init
-git branch -m main  # opcional, para usar 'main' como rama por defecto
-```
-
-Atención: lora-tx contiene un .git propio (repositorio anidado). Opciones:
-- Monorepo: eliminar lora-tx/.git para versionar todo en este repositorio raíz.
-  ```bash
-  rm -rf lora-tx/.git
-  git add .
-  git commit -m "Initial commit: TX/RX, scripts, envs y .gitignore"
-  ```
-- Repositorio separado: mantener lora-tx como repo independiente y añadirlo como submódulo si corresponde.
-  ```bash
-  echo "lora-tx/" >> .gitignore
-  git add .gitignore
-  git commit -m "Ignore nested repo lora-tx"
-  # o como submódulo (requiere URL remota):
-  # git submodule add <URL_DEL_REPO_LORA_TX> lora-tx
-  ```
-
-Para añadir un remoto y publicar:
-
-```bash
-git remote add origin <URL_DE_TU_REPO>
-git push -u origin main
-```
-
 ## Cumplimiento normativo
 Opera dentro de las bandas ISM y límites de potencia permitidos en tu región (p. ej., 915 MHz o 868 MHz). Usa una antena adecuada y sigue las guías de seguridad RF.
 
