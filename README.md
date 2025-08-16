@@ -11,7 +11,7 @@
 ![GitHub forks](https://img.shields.io/github/forks/rotoapanta/raspberry-api?style=social) 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-# <p align="center">rpi-lora-hat-tx-rx</p>
+# <p align="center">RPI LoRa HAT Tx and Rx</p>
 
 Project with two separate components to work with LoRa SX126x HATs on Raspberry Pi:
 - lora-tx: transmitter (random messages or simulated sensor telemetry)
